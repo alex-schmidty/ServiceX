@@ -393,7 +393,7 @@ class TransformationResult(db.Model):
         db.session.flush()
 
 
-class DatasetStatus(Enum):
+class DatasetStatus(str, Enum):
     created = "created"
     looking = "looking"
     complete = "complete"
@@ -439,6 +439,14 @@ class Dataset(db.Model):
     @classmethod
     def find_by_id(cls, id) -> Optional['Dataset']:
         return cls.query.get(id)
+
+    @classmethod
+    def get_by_did_finder(cls, did_finder) -> List[Dataset]:
+        return cls.query.filter_by(did_finder=did_finder)
+
+    @classmethod
+    def get_all(cls):
+        return cls.query.all()
 
 
 class DatasetFile(db.Model):
