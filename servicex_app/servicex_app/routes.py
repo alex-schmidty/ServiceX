@@ -27,6 +27,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from flask import current_app as app
 
+from servicex_app.resources.datasets.get_all import AllDatasets
+
 
 def add_routes(api, transformer_manager, rabbit_mq_adaptor,
                object_store, code_gen_service,
@@ -124,6 +126,8 @@ def add_routes(api, transformer_manager, rabbit_mq_adaptor,
 
     # Client public endpoints
     api.add_resource(Info, '/servicex')
+    api.add_resource(AllDatasets, '/servicex/datasets')
+
     prefix = "/servicex/transformation"
     api.add_resource(SubmitTransformationRequest, prefix)
     api.add_resource(AllTransformationRequests, prefix)
