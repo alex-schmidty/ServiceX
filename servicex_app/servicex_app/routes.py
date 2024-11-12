@@ -28,6 +28,7 @@
 from flask import current_app as app
 
 from servicex_app.resources.datasets.get_all import AllDatasets
+from servicex_app.resources.datasets.get_one import OneDataset
 
 
 def add_routes(api, transformer_manager, rabbit_mq_adaptor,
@@ -127,6 +128,7 @@ def add_routes(api, transformer_manager, rabbit_mq_adaptor,
     # Client public endpoints
     api.add_resource(Info, '/servicex')
     api.add_resource(AllDatasets, '/servicex/datasets')
+    api.add_resource(OneDataset, '/servicex/datasets/<int:dataset_id>')
 
     prefix = "/servicex/transformation"
     api.add_resource(SubmitTransformationRequest, prefix)

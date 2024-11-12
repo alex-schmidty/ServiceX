@@ -462,6 +462,15 @@ class DatasetFile(db.Model):
     paths = db.Column(db.Text(), unique=False, nullable=False)
     dataset = relationship("Dataset", back_populates="files")
 
+    def to_json(self):
+        return {
+            'id': self.id,
+            'adler32': self.adler32,
+            'file_size': self.file_size,
+            'file_events': self.file_events,
+            'paths': self.paths
+        }
+
     def save_to_db(self):
         db.session.add(self)
         db.session.flush()
