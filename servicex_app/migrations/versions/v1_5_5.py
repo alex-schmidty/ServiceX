@@ -21,10 +21,16 @@ def upgrade():
                                         sa.Boolean(),
                                         nullable=False,
                                         server_default='false'))
+
+    # Name is no longer unique, so we need to drop the unique index
+    # op.drop_index('datasets_name_key', table_name='datasets')
+
+    op.drop_constraint('datasets_name_key', 'datasets')
     # This was never used, so a fine time to delete it
     op.drop_column('transform_result', 'did')
 
 
 def downgrade():
+    op.create_unique_constraint('datasets_name_key', 'datasets', ['name'])
     op.drop_column('datasets', 'stale')
     # No need to add the transform_result.did column back in

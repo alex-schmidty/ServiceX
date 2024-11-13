@@ -30,10 +30,25 @@ from servicex_app.models import Dataset
 from servicex_app.resources.servicex_resource import ServiceXResource
 
 
-class OneDataset(ServiceXResource):
+class DeleteDataset(ServiceXResource):
     @auth_required
-    def get(self, dataset_id):
+    def delete(self, dataset_id):
         dataset = Dataset.find_by_id(dataset_id)
-        result = dataset.to_json()
-        result['files'] = [f.to_json() for f in dataset.files]
-        return result
+
+        if not dataset:
+            return {
+                'message': f'Dataset {dataset_id} not found'
+            }, 404
+
+        if dataset.stale:
+            return {
+                'message': f'Dataset {dataset_id} has already been deleted'
+            }, 400
+
+        dataset.stale = True
+        dataset.save_to_db()
+
+        return {
+            'dataset-id': dataset_id,
+            'stale': True
+        }

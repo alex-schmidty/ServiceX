@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from flask import current_app as app
 
+from servicex_app.resources.datasets.delete_dataset import DeleteDataset
 from servicex_app.resources.datasets.get_all import AllDatasets
 from servicex_app.resources.datasets.get_one import OneDataset
 
@@ -129,6 +130,7 @@ def add_routes(api, transformer_manager, rabbit_mq_adaptor,
     api.add_resource(Info, '/servicex')
     api.add_resource(AllDatasets, '/servicex/datasets')
     api.add_resource(OneDataset, '/servicex/datasets/<int:dataset_id>')
+    api.add_resource(DeleteDataset, '/servicex/datasets/<int:dataset_id>')
 
     prefix = "/servicex/transformation"
     api.add_resource(SubmitTransformationRequest, prefix)

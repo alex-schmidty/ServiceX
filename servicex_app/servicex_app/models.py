@@ -401,7 +401,7 @@ class Dataset(db.Model):
     __tablename__ = 'datasets'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(1024), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(1024), unique=False, nullable=False, index=True)
     last_used = db.Column(db.DateTime, nullable=False)
     last_updated = db.Column(db.DateTime, nullable=True)
     did_finder = db.Column(db.String(64), nullable=False)
@@ -427,13 +427,14 @@ class Dataset(db.Model):
             'events': self.events,
             'last_used': str(self.last_used.strftime(iso_fmt)),
             'last_updated': str(self.last_updated.strftime(iso_fmt)),
-            'lookup_status': self.lookup_status
+            'lookup_status': self.lookup_status,
+            'is-stale': self.stale
         }
         return result_obj
 
     @classmethod
     def find_by_name(cls, name) -> Optional['Dataset']:
-        return cls.query.filter_by(name=name).first()
+        return cls.query.filter_by(name=name, stale=False).first()
 
     @classmethod
     def find_by_id(cls, id) -> Optional['Dataset']:
@@ -441,11 +442,11 @@ class Dataset(db.Model):
 
     @classmethod
     def get_by_did_finder(cls, did_finder) -> List[Dataset]:
-        return cls.query.filter_by(did_finder=did_finder)
+        return cls.query.filter_by(did_finder=did_finder, stale=False)
 
     @classmethod
     def get_all(cls):
-        return cls.query.all()
+        return cls.query.filter_by(stale=False)
 
 
 class DatasetFile(db.Model):
