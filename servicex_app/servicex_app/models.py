@@ -428,7 +428,7 @@ class Dataset(db.Model):
             'last_used': str(self.last_used.strftime(iso_fmt)),
             'last_updated': str(self.last_updated.strftime(iso_fmt)),
             'lookup_status': self.lookup_status,
-            'is-stale': self.stale
+            'is_stale': self.stale
         }
         return result_obj
 
@@ -441,12 +441,18 @@ class Dataset(db.Model):
         return cls.query.get(id)
 
     @classmethod
-    def get_by_did_finder(cls, did_finder) -> List[Dataset]:
-        return cls.query.filter_by(did_finder=did_finder, stale=False)
+    def get_by_did_finder(cls, did_finder, show_deleted: bool = False) -> List[Dataset]:
+        if show_deleted:
+            return cls.query.filter_by(did_finder=did_finder)
+        else:
+            return cls.query.filter_by(did_finder=did_finder, stale=False)
 
     @classmethod
-    def get_all(cls):
-        return cls.query.filter_by(stale=False)
+    def get_all(cls, show_deleted: bool = False) -> List[Dataset]:
+        if show_deleted:
+            return cls.query.all()
+        else:
+            return cls.query.filter_by(stale=False)
 
 
 class DatasetFile(db.Model):

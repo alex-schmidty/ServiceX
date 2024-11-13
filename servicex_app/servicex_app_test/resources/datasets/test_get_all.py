@@ -53,7 +53,7 @@ class TestDatasetsGetAll(ResourceTestBase):
         mock_get_by_did_finder.return_value = datasets
         client = self._test_client()
         response = client.get('/servicex/datasets?did-finder=rucio')
-        mock_get_by_did_finder.assert_called_with('rucio')
+        mock_get_by_did_finder.assert_called_with('rucio', None)
         assert response.status_code == 200
 
         assert response.json == {
@@ -62,7 +62,7 @@ class TestDatasetsGetAll(ResourceTestBase):
                     "last_used": "2022-01-01T00:00:00.000000Z",
                     "last_updated": "2022-01-01T00:00:00.000000Z",
                     "id": "123",
-                    'is-stale': None,
+                    'is_stale': None,
                     "did_finder": "rucio",
                     'lookup_status': 'looking',
                     'name': 'dataset1',
