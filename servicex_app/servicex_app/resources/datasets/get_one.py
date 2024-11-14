@@ -25,28 +25,15 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from flask_restful import reqparse
-
 from servicex_app.decorators import auth_required
 from servicex_app.models import Dataset
 from servicex_app.resources.servicex_resource import ServiceXResource
 
-parser = reqparse.RequestParser()
-parser.add_argument('did-finder', type=str, location='args', required=False)
-parser.add_argument('show-deleted', type=bool, location='args', required=False)
 
-
-class AllDatasets(ServiceXResource):
+class OneDataset(ServiceXResource):
     @auth_required
-    def get(self):
-        args = parser.parse_args()
-        show_deleted = args['show-deleted'] if 'show-deleted' in args else False
-        if 'did-finder' in args and args['did-finder']:
-            did_finder = args['did-finder']
-            datasets = Dataset.get_by_did_finder(did_finder, show_deleted)
-        else:
-            datasets = Dataset.get_all(show_deleted)
-
-        return {
-            "datasets": [dataset.to_json() for dataset in datasets]
-        }
+    def get(self, dataset_id):
+        dataset = Dataset.find_by_id(dataset_id)
+        result = dataset.to_json()
+        result['files'] = [f.to_json() for f in dataset.files]
+        return result

@@ -359,7 +359,6 @@ class TransformationResult(db.Model):
     __tablename__ = 'transform_result'
 
     id = db.Column(db.Integer, primary_key=True)
-    did = db.Column(db.String(512), unique=False, nullable=False)
     file_id = db.Column(db.Integer, ForeignKey('files.id'))
     file_path = db.Column(db.String(512), unique=False, nullable=False)
     request_id = db.Column(db.String(48), unique=False, nullable=False)
@@ -378,7 +377,6 @@ class TransformationResult(db.Model):
         return {
             'id': x.id,
             'request-id': x.request_id,
-            'did': x.did,
             'file-id': x.id,
             'file-path': x.file_path,
             'transform_status': x.transform_status,
@@ -403,7 +401,7 @@ class Dataset(db.Model):
     __tablename__ = 'datasets'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(1024), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(1024), unique=False, nullable=False, index=True)
     last_used = db.Column(db.DateTime, nullable=False)
     last_updated = db.Column(db.DateTime, nullable=True)
     did_finder = db.Column(db.String(64), nullable=False)
@@ -411,6 +409,7 @@ class Dataset(db.Model):
     size = db.Column(db.BigInteger, default=0, nullable=True)
     events = db.Column(db.BigInteger, default=0, nullable=True)
     lookup_status = db.Column(db.Enum(DatasetStatus), nullable=False)
+    stale = db.Column(db.Boolean, default=False, nullable=False)
     files = relationship("DatasetFile", back_populates="dataset")
 
     def save_to_db(self):
@@ -428,25 +427,32 @@ class Dataset(db.Model):
             'events': self.events,
             'last_used': str(self.last_used.strftime(iso_fmt)),
             'last_updated': str(self.last_updated.strftime(iso_fmt)),
-            'lookup_status': self.lookup_status
+            'lookup_status': self.lookup_status,
+            'is_stale': self.stale
         }
         return result_obj
 
     @classmethod
     def find_by_name(cls, name) -> Optional['Dataset']:
-        return cls.query.filter_by(name=name).first()
+        return cls.query.filter_by(name=name, stale=False).first()
 
     @classmethod
     def find_by_id(cls, id) -> Optional['Dataset']:
         return cls.query.get(id)
 
     @classmethod
-    def get_by_did_finder(cls, did_finder) -> List[Dataset]:
-        return cls.query.filter_by(did_finder=did_finder)
+    def get_by_did_finder(cls, did_finder, show_deleted: bool = False) -> List[Dataset]:
+        if show_deleted:
+            return cls.query.filter_by(did_finder=did_finder)
+        else:
+            return cls.query.filter_by(did_finder=did_finder, stale=False)
 
     @classmethod
-    def get_all(cls):
-        return cls.query.all()
+    def get_all(cls, show_deleted: bool = False) -> List[Dataset]:
+        if show_deleted:
+            return cls.query.all()
+        else:
+            return cls.query.filter_by(stale=False)
 
 
 class DatasetFile(db.Model):
@@ -462,6 +468,15 @@ class DatasetFile(db.Model):
     file_events = db.Column(db.BigInteger, nullable=True)
     paths = db.Column(db.Text(), unique=False, nullable=False)
     dataset = relationship("Dataset", back_populates="files")
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'adler32': self.adler32,
+            'file_size': self.file_size,
+            'file_events': self.file_events,
+            'paths': self.paths
+        }
 
     def save_to_db(self):
         db.session.add(self)

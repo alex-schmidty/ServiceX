@@ -29,54 +29,37 @@ from datetime import datetime
 from unittest.mock import patch
 from pytest import fixture
 
-from servicex_app.models import Dataset
+from servicex_app.models import Dataset, DatasetFile
 from servicex_app_test.resource_test_base import ResourceTestBase
 
 
-class TestDatasetsGetAll(ResourceTestBase):
+class TestDatasetsGetOne(ResourceTestBase):
     @fixture
     def datasets(self):
-        return [
-            Dataset(last_used=datetime(2022, 1, 1),
-                    last_updated=datetime(2022, 1, 1),
-                    id='123',
-                    name='dataset1',
-                    events=100,
-                    size=1000,
-                    n_files=1,
-                    lookup_status='looking',
-                    did_finder='rucio'),
+        dataset = Dataset(last_used=datetime(2022, 1, 1),
+                          last_updated=datetime(2022, 1, 1),
+                          id='123',
+                          name='dataset1',
+                          events=100,
+                          size=1000,
+                          n_files=1,
+                          lookup_status='looking',
+                          did_finder='rucio')
+        dataset.files = [
+            DatasetFile(
+                id=12,
+                dataset_id=dataset.id,
+                file_size=100,
+                file_events=100,
+                paths=['root://root.cern.ch/file1.root']
+            )
         ]
+        return dataset
 
-    @patch('servicex_app.models.Dataset.get_by_did_finder')
-    def test_get_all_rucio(self, mock_get_by_did_finder, datasets):
-        mock_get_by_did_finder.return_value = datasets
-        client = self._test_client()
-        response = client.get('/servicex/datasets?did-finder=rucio')
-        mock_get_by_did_finder.assert_called_with('rucio', None)
-        assert response.status_code == 200
-
-        assert response.json == {
-            "datasets": [
-                {
-                    "last_used": "2022-01-01T00:00:00.000000Z",
-                    "last_updated": "2022-01-01T00:00:00.000000Z",
-                    "id": "123",
-                    'is_stale': None,
-                    "did_finder": "rucio",
-                    'lookup_status': 'looking',
-                    'name': 'dataset1',
-                    'size': 1000,
-                    'events': 100,
-                    'n_files': 1
-                }
-            ]
-        }
-
-    @patch('servicex_app.models.Dataset.get_all')
-    def test_get_all(self, mock_get, datasets):
+    @patch('servicex_app.models.Dataset.find_by_id')
+    def test_get_one(self, mock_get, datasets):
         mock_get.return_value = datasets
         client = self._test_client()
-        response = client.get('/servicex/datasets')
+        response = client.get('/servicex/datasets/123')
         mock_get.assert_called()
         assert response.status_code == 200
