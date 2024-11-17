@@ -46,6 +46,26 @@ spec:
           - name: SITE_NAME
             value: "{{ .Values.didFinder.rucio.site }}"
           {{- end }}
+          {{- if .Values.didFinder.rucio.replicaSorterEnabled }}
+          - name: USE_REPLICA_SORTER
+            value: "1"
+          {{- if .Values.didFinder.rucio.geoIPURL }}
+          - name: GEOIP_DB_URL
+            value: {{ .Values.didFinder.rucio.geoIPURL }}
+          {{- else }}
+          {{- if .Values.didFinder.rucio.geoIPEdition -}}
+          - name: GEOIP_DB_EDITION
+            value: {{ .Values.didFinder.rucio.geoIPEdition }}
+          {{- end -}}
+          {{- if .Values.secrets -}}
+          - name: GEOIP_DB_LICENSE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.secrets }}
+                key: geoip-license-key
+          {{- end }}
+          {{- end }}
+          {{- end }}
           - name: INSTANCE_NAME
             value: {{ .Release.Name }}
         volumeMounts:

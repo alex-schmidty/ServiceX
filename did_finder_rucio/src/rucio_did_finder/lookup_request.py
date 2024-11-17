@@ -28,12 +28,16 @@
 import logging
 from datetime import datetime
 from rucio_did_finder.rucio_adapter import RucioAdapter
+from .replica_distance import ReplicaSorter
+from typing import Optional, Mapping
 
 
 class LookupRequest:
     def __init__(self, did: str,
                  rucio_adapter: RucioAdapter,
-                 dataset_id: str = 'bogus-id'):
+                 dataset_id: str = 'bogus-id',
+                 replica_sorter: Optional[ReplicaSorter] = None,
+                 location: Optional[Mapping[str, float]] = None):
         '''Create the `LookupRequest` object that is responsible for returning
         lists of files. Processes things in chunks.
 
@@ -50,6 +54,9 @@ class LookupRequest:
         # set logging to a null handler
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(logging.NullHandler())
+
+        self.location = location
+        self.replica_sorter = replica_sorter
 
     def lookup_files(self):
         """
@@ -68,6 +75,11 @@ class LookupRequest:
                 n_files += 1
                 ds_size += af['file_size']
                 total_paths += len(af['paths'])
+                ipaths = af['paths'].copy()
+                self.logger.debug(f'path before {ipaths}')
+                if self.replica_sorter is not None and self.location is not None:
+                    af['paths'] = self.replica_sorter.sort_replicas(ipaths, self.location)
+                self.logger.debug(f'path after {af["paths"]}')
                 full_file_list.append(af)
             yield ds_files
 

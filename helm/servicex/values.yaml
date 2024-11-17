@@ -77,7 +77,6 @@ codeGen:
     defaultScienceContainerImage: sslhep/servicex_func_adl_cms_aod_transformer
     defaultScienceContainerTag: cmssw-5-3-32
 
-
 didFinder:
   CERNOpenData:
     enabled: true
@@ -99,6 +98,10 @@ didFinder:
     servicex_latitude: 41.78
     servicex_longitude: -87.7
     tag: develop
+    replicaSorterEnabled: false
+    geoIPURL: null
+    geoIPEdition: null
+
 gridAccount: <your account>
 logging:
   logstash:
