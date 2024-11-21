@@ -30,7 +30,8 @@ from flask import current_app as app
 from servicex_app.resources.datasets.delete_dataset import DeleteDataset
 from servicex_app.resources.datasets.get_all import AllDatasets
 from servicex_app.resources.datasets.get_one import OneDataset
-from servicex_app.resources.transformation.archive import ArchiveTransform
+from servicex_app.resources.transformation.delete import DeleteTransform
+from servicex_app.resources.internal.data_lifecycle_ops import DataLifecycleOps
 
 
 def add_routes(api, transformer_manager, rabbit_mq_adaptor,
@@ -139,8 +140,8 @@ def add_routes(api, transformer_manager, rabbit_mq_adaptor,
     prefix += "/<string:request_id>"
     api.add_resource(TransformationRequest, prefix)
 
-    ArchiveTransform.make_api(object_store)
-    api.add_resource(ArchiveTransform, prefix)
+    DeleteTransform.make_api(object_store)
+    api.add_resource(DeleteTransform, prefix)
 
     api.add_resource(TransformationStatus, prefix + "/status")
 
@@ -165,3 +166,6 @@ def add_routes(api, transformer_manager, rabbit_mq_adaptor,
     TransformerFileComplete.make_api(transformer_manager)
     api.add_resource(TransformerFileComplete,
                      '/servicex/internal/transformation/<string:request_id>/file-complete')
+
+    DataLifecycleOps.make_api(object_store)
+    api.add_resource(DataLifecycleOps, '/servicex/internal/data-lifecycle')
