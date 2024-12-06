@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import os
 import shutil
+import yaml
 
 from servicex_codegen.code_generator import CodeGenerator, GeneratedFileResult, \
     GenerateCodeException
@@ -39,28 +40,12 @@ class TopCPTranslator(CodeGenerator):
         if len(query) == 0:
             raise GenerateCodeException("Requested codegen for an empty string.")
 
-        import json 
-        jquery = json.loads(query)
-
-        generated_code = f'''
-import yaml
-import os
-import json
-def make_yaml():
-    query = {jquery}
-    with open(os.path.join(os.environ.get("CONFIG_LOC"), "reco.yaml"), 'w') as reco:
-        yaml.dump(query, reco, default_flow_style=False)
-    '''
-
-        _hash = hashlib.md5(generated_code.encode(), usedforsecurity=False).hexdigest()
+        _hash = hashlib.md5(query.encode(), usedforsecurity=False).hexdigest()
         query_file_path = os.path.join(cache_path, _hash)
 
         # Create the files to run in that location.
         if not os.path.exists(query_file_path):
             os.makedirs(query_file_path)
-
-        with open(os.path.join(query_file_path, 'generated_transformer.py'), 'w') as python_file:
-            python_file.write(generated_code)
 
         # Transfer the templated main python script
         template_path = os.environ.get('TEMPLATE_PATH',
@@ -71,5 +56,7 @@ def make_yaml():
                                            "/home/servicex/transformer_capabilities.json")
         shutil.copyfile(capabilities_path, os.path.join(query_file_path,
                                                         "transformer_capabilities.json"))
-            
+        with open(os.path.join(query_file_path, "reco.yaml","w")) as reco:
+            reco.write(query)
+
         return GeneratedFileResult(_hash, query_file_path)
