@@ -17,6 +17,8 @@ RUN poetry config virtualenvs.create false && \
 
 RUN pip install gunicorn
 
+RUN sed -i 's/TopCPParser/RawUprootStats/' transformer_capabilities.json
+
 COPY boot.sh ./
 COPY transformer_capabilities.json ./
 COPY servicex/ ./servicex
